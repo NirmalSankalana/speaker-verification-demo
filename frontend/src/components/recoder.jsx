@@ -5,6 +5,7 @@ const AudioRecorder = ({ onRecordingComplete }) => {
   const mediaRecorder = useRef(null);
   const chunks = useRef([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordedAudioURL, setRecordedAudioURL] = useState(null);
 
   const startRecording = async () => {
     try {
@@ -20,6 +21,8 @@ const AudioRecorder = ({ onRecordingComplete }) => {
 
       mediaRecorder.current.onstop = () => {
         const recordedBlob = new Blob(chunks.current, { type: 'audio/webm' });
+        const audioURL = URL.createObjectURL(recordedBlob);
+        setRecordedAudioURL(audioURL);
         onRecordingComplete(recordedBlob);
         chunks.current = [];
         setIsRecording(false);
@@ -55,6 +58,11 @@ const AudioRecorder = ({ onRecordingComplete }) => {
   return (
     <div>
       <button onClick={toggleRecording}>{isRecording ? 'Stop Recording' : 'Start Recording'}</button>
+      {recordedAudioURL && (
+        <div>
+          <audio controls src={recordedAudioURL}></audio>
+        </div>
+      )}
     </div>
   );
 };

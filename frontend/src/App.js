@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Register from './views/register';
 
+
 function App() {
   return (
     <BrowserRouter>

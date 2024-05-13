@@ -15,28 +15,36 @@ const Register = () => {
     setRecordedAudio(url);
   };
 
-  const handleSubmit = () => {
-    if (!username || !recordedAudio) {
-      alert('Please enter a username and record audio before submitting.');
-      return;
+const handleSubmit = () => {
+  if (!username || !recordedAudio) {
+    alert('Please enter a username and record audio before submitting.');
+    return;
+  }
+
+  // Create a FormData object to send the data
+  const formData = new FormData();
+  formData.append('username', username);
+  formData.append('audio', recordedAudio);
+
+  // Send the POST request to the backend
+  fetch('/users', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(response => {
+    if (response.ok) {
+      setUsername('');
+      setRecordedAudio(null);
+      alert('Registration successful!');
+    } else {
+      throw new Error('Registration failed.');
     }
-
-    // Code to submit username and recorded audio for registration
-    console.log(`Username: ${username}`);
-    console.log(`Recorded Audio URL:`, recordedAudio);
-
-    // You can send this data to your backend for further processing
-    // Example: fetch('/api/register', {
-    //   method: 'POST',
-    //   body: formData,
-    // }).then(response => {
-    //   // Handle response
-    // });
-
-    // Reset form after submission
-    setUsername('');
-    setRecordedAudio(null);
-  };
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Registration failed. Please try again later.');
+  });
+};
 
   return (
     <div>

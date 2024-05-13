@@ -4,6 +4,9 @@ from sqlalchemy import create_engine
 from flask import Flask, request, jsonify
 import os
 import numpy as np
+from generate_embedding import get_embedding
+from convert_audio import webm_to_wav
+
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -28,7 +31,11 @@ def register():
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_file.filename)
     audio_file.save(file_path)
 
-    embedding = get_embedding(file_path)
+    # convert to wav
+    wav_file_path = os.path.join(app.config['UPLOAD_FOLDER'], "recorded_audio_wav.wav")
+    webm_to_wav(webm_file_path=file_path, save_wav_file_name=wav_file_path)
+
+    embedding = get_embedding(wav_file_path)
 
     session = Session()
     new_embedding = Embedding(username=username, embedding=embedding)
@@ -47,12 +54,6 @@ def is_username_reserved(username):
     return existing_user is not None
 
 
-def get_embedding(file_path):
-    # Replace this with your actual embedding generation logic
-    embedding_vector = np.random.rand(512)
-    embedding_bytes = embedding_vector.tobytes()
-    return embedding_bytes
-
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

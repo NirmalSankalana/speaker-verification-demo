@@ -1,0 +1,3 @@
+flask
+sqlalchemy
+pydub==0.25.1

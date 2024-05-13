@@ -12,11 +12,9 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import FiberManualRecordTwoToneIcon from "@mui/icons-material/FiberManualRecordTwoTone";
 import StopCircleTwoToneIcon from "@mui/icons-material/StopCircleTwoTone";
-import { Link } from "react-router-dom";
 
 const Register = () => {
   const mediaRecorderRef = useRef(null);
-  const [username, setUsername] = useState("");
   const [recordedBlob, setRecordedBlob] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [openToast, setOpenToast] = useState(false);
@@ -67,10 +65,9 @@ const Register = () => {
 
     const formData = new FormData();
     formData.append("audio", recordedBlob, "recorded_audio.webm");
-    formData.append("username", username);
 
     try {
-      const response = await fetch("/register", {
+      const response = await fetch("/verify", {
         method: "POST",
         body: formData,
       });
@@ -102,37 +99,26 @@ const Register = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-              <Snackbar open={openToast} autoHideDuration={6000} onClose={handleCloseToast}>
+      <Container component="main" maxWidth="xs">
+                  <Snackbar open={openToast} autoHideDuration={6000} onClose={handleCloseToast}>
           <MuiAlert elevation={6} variant="filled" onClose={handleCloseToast} severity={toastSeverity}>
             {toastMessage}
           </MuiAlert>
         </Snackbar>
       <Box
         sx={{
-          marginTop: 10,
+          marginTop: 20,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
         }}
       >
-        <Typography component="h1" variant="h5" sx={{ mb: 1 }}>
-          Register
+        <Typography component="h1" variant="h5" >
+          VerifyVoice
         </Typography>
 
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="username"
-          label="User Name"
-          name="username"
-          autoFocus
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
 
-        <Grid container spacing={1} alignItems="center">
+        <Grid container spacing={2} alignItems="center" sx={{ mt: 1 }}>
           <Grid item>
             <IconButton onClick={toggleRecording}>
               {isRecording ? (
@@ -162,12 +148,8 @@ const Register = () => {
           sx={{ mt: 1 }}
           onClick={sendRecordedAudio}
         >
-          Register
+          Verify
         </Button>
-
-        <Typography variant="body1" sx={{ mt: 1 }}>
-          Need to varify your voice? <Link to="/">Verify</Link>
-        </Typography>
 
 
       </Box>

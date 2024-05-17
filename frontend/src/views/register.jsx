@@ -166,7 +166,7 @@ const Register = () => {
         </Button>
 
         <Typography variant="body1" sx={{ mt: 1 }}>
-          Need to varify your voice? <Link to="/">Verify</Link>
+          Need to verify your voice? <Link to="/">Verify</Link>
         </Typography>
 
 

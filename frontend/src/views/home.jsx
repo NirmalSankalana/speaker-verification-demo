@@ -12,6 +12,8 @@ import {
 import MuiAlert from '@mui/material/Alert';
 import FiberManualRecordTwoToneIcon from "@mui/icons-material/FiberManualRecordTwoTone";
 import StopCircleTwoToneIcon from "@mui/icons-material/StopCircleTwoTone";
+import { Link, useNavigate} from "react-router-dom";
+
 
 const Register = () => {
   const mediaRecorderRef = useRef(null);
@@ -21,6 +23,8 @@ const Register = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastSeverity, setToastSeverity] = useState("success");
 
+  const navigate = useNavigate();
+  
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const mediaRecorder = new MediaRecorder(stream);
@@ -73,13 +77,24 @@ const Register = () => {
       });
 
       if (response.ok) {
+        const data = await response.json();
+
+        if (data.message === 'Match Found') {
+          console.log('Match Found:', data.username, 'Score:', data.score);
+          navigate('/success', { state: { username: data.username, score: data.score } })
+        } else if (data.error === 'Match Not Found') {
+          navigate('/not-match'); // Navigate to the NotMatch component
+        } else {
+          navigate('/not-match'); // Navigate to the NotMatch component
+        }
         setToastSeverity("success");
-        setToastMessage("User Registerd Successfully :)");
+        setToastMessage("User Verfify Successfully : "+ data.username);
         setOpenToast(true);
         console.log("Audio uploaded successfully");
+        console.log(data)
       } else {
         setToastSeverity("error");
-        setToastMessage("Failsed to register the user :(");
+        setToastMessage("Failsed to verify the user :(");
         setOpenToast(true);
         console.error("Failed to upload audio");
       }
@@ -150,6 +165,10 @@ const Register = () => {
         >
           Verify
         </Button>
+
+        <Typography variant="body1" sx={{ mt: 1 }}>
+          Need to Register your voice? <Link to="/register">Register</Link>
+        </Typography>
 
 
       </Box>

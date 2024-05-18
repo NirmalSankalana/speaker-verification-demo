@@ -43,8 +43,8 @@ def register():
     embedding = spk_emb_model.get_embedding(wav_file_path, num_eval=num_eval)
 
     if embedding is None:
-        print("Error: embedding is None | audio is too short")
-        return jsonify({'error': 'Audio file is too short'}), 400
+        print("error: audio is too short/empty")
+        return jsonify({'error': 'Audio is too short/empty'})
     
     serialized_emb = serialize_array(embedding)
 

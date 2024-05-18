@@ -6,7 +6,7 @@ import os
 import numpy as np
 from generate_embedding import Model
 from convert_audio import webm_to_wav
-from verifyvoice import Similarity
+from sklearn.metrics.pairwise import cosine_similarity
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -37,6 +37,7 @@ def register():
     webm_to_wav(webm_file_path=file_path, save_wav_file_name=wav_file_path)
 
     embedding = spk_emb_model.get_embedding(wav_file_path)
+    # print(f"Embedding shape: {embedding.shape} {embedding.dtype}")
 
     session = Session()
     new_embedding = Embedding(username=username, embedding=embedding)
@@ -66,6 +67,7 @@ def verify():
     webm_to_wav(webm_file_path=file_path, save_wav_file_name=wav_file_path)
 
     embedding = spk_emb_model.get_embedding(wav_file_path)
+    # print(f"Embedding shape: {embedding.shape} {embedding.dtype}")
 
     session = Session()
     all_embeddings = session.query(Embedding).all()
@@ -75,10 +77,9 @@ def verify():
     for stored_embedding in all_embeddings:
         username = stored_embedding.username
         embedding_binary = stored_embedding.embedding
-        embedding_array = np.frombuffer(embedding_binary, dtype=np.float32).reshape(1, 256)
+        embedding_array = np.frombuffer(embedding_binary, dtype=np.float32).reshape(embedding.shape[0], -1)
         print(f"{username=} : {embedding_array.shape=} {embedding.shape=}")
-        similarity = Similarity.cosine(embedding_array, embedding)
-        
+        similarity = cosine_similarity(embedding_array, embedding)[0][0]
         similarities.append((stored_embedding.username, similarity))
 
     session.close()
@@ -93,7 +94,7 @@ def verify():
     username, score = top_match
     print(f"M {username} {score}")
 
-    if score >= 0.6:
+    if score >= 0.22:
         print(f"Match Found")
         return jsonify({'message': 'Match Found',
                         'username': username,

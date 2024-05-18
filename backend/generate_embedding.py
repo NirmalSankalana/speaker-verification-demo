@@ -5,7 +5,7 @@ class Model():
         self.model = ModelLoader(model_name="WavLM", attention_heads=attention_heads)
         
 
-    def get_embedding(self, audio_path):
-        emb = self.model.get_embedding(audio_path)
-        print(f"embedding generated for audio : {audio_path} shape {emb.shape}")
+    def get_embedding(self, audio_path, evalmode=True, vad=True, num_eval=10):
+        emb = self.model.get_embedding(audio_path, evamode=evalmode, vad=vad, num_eval=num_eval)
+        print(f"embedding generated for audio : {audio_path}")
         return emb

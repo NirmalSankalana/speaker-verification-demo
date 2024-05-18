@@ -7,6 +7,8 @@ import numpy as np
 from generate_embedding import Model
 from convert_audio import webm_to_wav
 from sklearn.metrics.pairwise import cosine_similarity
+from io import BytesIO
+
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -17,6 +19,8 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 spk_emb_model = Model()
+
+num_eval = 10
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -36,11 +40,17 @@ def register():
     wav_file_path = os.path.join(app.config['UPLOAD_FOLDER'], "recorded_audio_wav.wav")
     webm_to_wav(webm_file_path=file_path, save_wav_file_name=wav_file_path)
 
-    embedding = spk_emb_model.get_embedding(wav_file_path)
-    # print(f"Embedding shape: {embedding.shape} {embedding.dtype}")
+    embedding = spk_emb_model.get_embedding(wav_file_path, num_eval=num_eval)
+
+    if embedding is None:
+        print("Error: embedding is None | audio is too short")
+        return jsonify({'error': 'Audio file is too short'}), 400
+    
+    serialized_emb = serialize_array(embedding)
+
 
     session = Session()
-    new_embedding = Embedding(username=username, embedding=embedding)
+    new_embedding = Embedding(username=username, embedding=serialized_emb)
     session.add(new_embedding)
     session.commit()
     session.close()
@@ -66,8 +76,12 @@ def verify():
     wav_file_path = os.path.join(app.config['UPLOAD_FOLDER'], "recorded_audio_wav.wav")
     webm_to_wav(webm_file_path=file_path, save_wav_file_name=wav_file_path)
 
-    embedding = spk_emb_model.get_embedding(wav_file_path)
-    # print(f"Embedding shape: {embedding.shape} {embedding.dtype}")
+    embedding = spk_emb_model.get_embedding(wav_file_path, num_eval=num_eval)
+    
+    if embedding is None:
+        print("error: audio is too short/empty")
+        return jsonify({'error': 'Audio is too short/empty'})
+    print(f"Embedding shape: {embedding.shape} {embedding}")
 
     session = Session()
     all_embeddings = session.query(Embedding).all()
@@ -77,9 +91,11 @@ def verify():
     for stored_embedding in all_embeddings:
         username = stored_embedding.username
         embedding_binary = stored_embedding.embedding
-        embedding_array = np.frombuffer(embedding_binary, dtype=np.float32).reshape(embedding.shape[0], -1)
-        print(f"{username=} : {embedding_array.shape=} {embedding.shape=}")
-        similarity = cosine_similarity(embedding_array, embedding)[0][0]
+        embedding_array = deserialize_array(embedding_binary)
+        # embedding_array = np.frombuffer(embedding_binary, dtype=np.float32).reshape(num_eval, -1)
+        print(f"{username=}")
+        similarity = cosine_similarity(embedding_array, embedding).mean()
+        print(f"{similarity=}")
         similarities.append((stored_embedding.username, similarity))
 
     session.close()
@@ -90,9 +106,11 @@ def verify():
     # Return the top match
     top_match = similarities[0]
     print(f"{top_match=}")
+
+    for username, score in similarities:
+        print(f"username: {username} score: {score}")
     
     username, score = top_match
-    print(f"M {username} {score}")
 
     if score >= 0.22:
         print(f"Match Found")
@@ -113,7 +131,14 @@ def is_username_reserved(username):
     session.close()
     return existing_user is not None
 
-
+def serialize_array(array):
+    with BytesIO() as output:
+        np.save(output, array)
+        return output.getvalue()
+    
+def deserialize_array(binary_data):
+    with BytesIO(binary_data) as input_data:
+        return np.load(input_data)
 
 if __name__ == '__main__':
     

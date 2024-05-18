@@ -78,20 +78,25 @@ const Register = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log(data);
 
         if (data.message === 'Match Found') {
           console.log('Match Found:', data.username, 'Score:', data.score);
+          setToastSeverity("success");
+          setToastMessage("User Verfify Successfully : "+ data.username);
+          setOpenToast(true);
+          console.log("Audio uploaded successfully");
           navigate('/success', { state: { username: data.username, score: data.score } })
         } else if (data.error === 'Match Not Found') {
           navigate('/not-match'); // Navigate to the NotMatch component
-        } else {
+        } else if (data.error === 'Audio is too short/empty') {
+          setToastSeverity("warning");
+          setToastMessage("Audio is too short/empty :(");
+          setOpenToast(true);
+        }
+        else {
           navigate('/not-match'); // Navigate to the NotMatch component
         }
-        setToastSeverity("success");
-        setToastMessage("User Verfify Successfully : "+ data.username);
-        setOpenToast(true);
-        console.log("Audio uploaded successfully");
-        console.log(data)
       } else {
         setToastSeverity("error");
         setToastMessage("Failsed to verify the user :(");

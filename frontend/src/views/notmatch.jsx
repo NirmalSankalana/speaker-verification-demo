@@ -41,7 +41,7 @@ const NotMatch = () => {
         }}
       />
       <Typography variant="h4" component="h1" gutterBottom>
-        Not Match
+        Unsucessful
       </Typography>
       <Typography variant="body1">Redirecting...</Typography>
       <CircularProgress size={24} sx={{ mt: 2 }} />

@@ -110,14 +110,14 @@ const Register = () => {
         </Snackbar>
       <Box
         sx={{
-          marginTop: 10,
+          marginTop: 20,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
         }}
       >
         <Typography component="h1" variant="h5" sx={{ mb: 1 }}>
-          Register
+          Enroll
         </Typography>
 
         <TextField

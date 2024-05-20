@@ -9,3 +9,6 @@ class Model():
         emb = self.model.get_embedding(audio_path, evamode=evalmode, vad=vad, num_eval=num_eval)
         print(f"embedding generated for audio : {audio_path}")
         return emb
+    
+    def get_threshold(self):
+        return self.model.get_threshold()

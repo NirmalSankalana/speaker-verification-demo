@@ -17,6 +17,7 @@ import { Link, useNavigate} from "react-router-dom";
 
 const Register = () => {
   const mediaRecorderRef = useRef(null);
+  const [username, setUsername] = useState("");
   const [recordedBlob, setRecordedBlob] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [openToast, setOpenToast] = useState(false);
@@ -69,6 +70,7 @@ const Register = () => {
 
     const formData = new FormData();
     formData.append("audio", recordedBlob, "recorded_audio.webm");
+    formData.append("username", username);
 
     try {
       const response = await fetch("/verify", {
@@ -93,9 +95,6 @@ const Register = () => {
           setToastSeverity("warning");
           setToastMessage("Audio is too short/empty :(");
           setOpenToast(true);
-        }
-        else {
-          navigate('/not-match'); // Navigate to the NotMatch component
         }
       } else {
         setToastSeverity("error");
@@ -137,6 +136,18 @@ const Register = () => {
           VerifyVoice
         </Typography>
 
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          id="username"
+          label="User Name"
+          name="username"
+          autoFocus
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
 
         <Grid container spacing={2} alignItems="center" sx={{ mt: 1 }}>
           <Grid item>
@@ -172,7 +183,7 @@ const Register = () => {
         </Button>
 
         <Typography variant="body1" sx={{ mt: 1 }}>
-          Need to Register your voice? <Link to="/register">Register</Link>
+          Need to Register your voice? <Link to="/register">Enroll</Link>
         </Typography>
 
 

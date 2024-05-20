@@ -6,9 +6,8 @@ import os
 import numpy as np
 from generate_embedding import Model
 from convert_audio import webm_to_wav
-from sklearn.metrics.pairwise import cosine_similarity
 from io import BytesIO
-
+from verifyvoice.Similarity import Similarity
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -19,6 +18,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 spk_emb_model = Model()
+THRESHOLD = spk_emb_model.get_threshold()
 
 num_eval = 10
 
@@ -64,7 +64,7 @@ def verify():
         return jsonify({'error': 'No audio file uploaded'}), 400
 
     audio_file = request.files['audio']
-    # username = request.form['username']
+    username = request.form['username'].split()[0]
 
     # if is_username_reserved(username):
     #     return jsonify({'error': 'Username is reserved'}), 400
@@ -81,53 +81,28 @@ def verify():
     if embedding is None:
         print("error: audio is too short/empty")
         return jsonify({'error': 'Audio is too short/empty'})
-    print(f"Embedding shape: {embedding.shape} {embedding}")
+    # print(f"Embedding shape: {embedding.shape} {embedding}")
 
     session = Session()
-    all_embeddings = session.query(Embedding).all()
-    print(f"{len(all_embeddings)=}")
-
-    similarities = []
-    for stored_embedding in all_embeddings:
-        username = stored_embedding.username
-        embedding_binary = stored_embedding.embedding
-        embedding_array = deserialize_array(embedding_binary)
-        # embedding_array = np.frombuffer(embedding_binary, dtype=np.float32).reshape(num_eval, -1)
-        print(f"{username=}")
-        similarity = cosine_similarity(embedding_array, embedding).mean()
-        print(f"{similarity=}")
-        similarities.append((stored_embedding.username, similarity))
-
+    stored_embedding = session.query(Embedding).filter_by(username=username).first()
     session.close()
 
-    # Sort the similarities in descending order
-    similarities.sort(key=lambda x: x[1], reverse=True)
-
-    # Return the top match
-    top_match = similarities[0]
-    print(f"{top_match=}")
-
-    for username, score in similarities:
-        print(f"username: {username} score: {score}")
+    if stored_embedding is None:
+        return jsonify({'error': 'Username not found'})
     
-    username, score = top_match
+    embedding_array = deserialize_array(stored_embedding.embedding)
+    similarity = Similarity.cosine_similarity(embedding_array, embedding)
+    print(f"Similarity: {similarity}")
 
-    if score >= 0.22:
-        print(f"Match Found")
-        return jsonify({'message': 'Match Found',
-                        'username': username,
-                        'score': str(score)
-                        })
+    if similarity >= 0.4:
+        return jsonify({'message': 'Match Found', 'username': username, 'score': str(similarity)})
     else:
-        print(f"Match Not Found {top_match}")
-        return jsonify({'error': 'Match Not Found'})
-
+        return jsonify({'error': 'Match Not Found', 'username': username, 'score': str(similarity)})
 
 
 def is_username_reserved(username):
     session = Session()
-    existing_user = session.query(
-    Embedding).filter_by(username=username).first()
+    existing_user = session.query(Embedding).filter_by(username=username).first()
     session.close()
     return existing_user is not None
 

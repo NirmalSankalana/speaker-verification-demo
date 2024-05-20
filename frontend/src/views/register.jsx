@@ -65,6 +65,13 @@ const Register = () => {
       return;
     }
 
+    if (!username) {
+      setToastSeverity("error");
+      setToastMessage("No Username provided");
+      setOpenToast(true);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("audio", recordedBlob, "recorded_audio.webm");
     formData.append("username", username);
@@ -75,22 +82,20 @@ const Register = () => {
         body: formData,
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setToastSeverity("success");
         setToastMessage("User Registerd Successfully :)");
-        setOpenToast(true);
-        console.log("Audio uploaded successfully");
       } else {
         setToastSeverity("error");
-        setToastMessage("Failsed to register the user :(");
-        setOpenToast(true);
-        console.error("Failed to upload audio");
+        setToastMessage(data.error || "Failed to register the user :(");
       }
+      setOpenToast(true);
     } catch (error) {
       setToastSeverity("error");
       setToastMessage("Error uploading audio: " + error.message);
       setOpenToast(true);
-      console.error("Error uploading audio:", error);
     }
   };
 
@@ -103,7 +108,12 @@ const Register = () => {
 
   return (
     <Container component="main" maxWidth="xs">
-              <Snackbar open={openToast} autoHideDuration={6000} onClose={handleCloseToast}>
+              <Snackbar 
+              open={openToast} 
+              autoHideDuration={6000} 
+              onClose={handleCloseToast}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              >
           <MuiAlert elevation={6} variant="filled" onClose={handleCloseToast} severity={toastSeverity}>
             {toastMessage}
           </MuiAlert>
@@ -168,8 +178,6 @@ const Register = () => {
         <Typography variant="body1" sx={{ mt: 1 }}>
           Need to verify your voice? <Link to="/">Verify</Link>
         </Typography>
-
-
       </Box>
     </Container>
   );

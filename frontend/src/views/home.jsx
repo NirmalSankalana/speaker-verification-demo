@@ -15,7 +15,7 @@ import StopCircleTwoToneIcon from "@mui/icons-material/StopCircleTwoTone";
 import { Link, useNavigate} from "react-router-dom";
 
 
-const Register = () => {
+const Home = () => {
   const mediaRecorderRef = useRef(null);
   const [username, setUsername] = useState("");
   const [recordedBlob, setRecordedBlob] = useState(null);
@@ -68,6 +68,13 @@ const Register = () => {
       return;
     }
 
+    if (!username) {
+      setToastSeverity("error");
+      setToastMessage("No Username provided");
+      setOpenToast(true);
+      return;
+    }
+
     const formData = new FormData();
     formData.append("audio", recordedBlob, "recorded_audio.webm");
     formData.append("username", username);
@@ -78,19 +85,16 @@ const Register = () => {
         body: formData,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
+      const data = await response.json();
 
+      if (response.ok) {
         if (data.message === 'Match Found') {
-          console.log('Match Found:', data.username, 'Score:', data.score);
           setToastSeverity("success");
-          setToastMessage("User Verfify Successfully : "+ data.username);
+          setToastMessage("User Verified Successfully : " + data.username);
           setOpenToast(true);
-          console.log("Audio uploaded successfully");
-          navigate('/success', { state: { username: data.username, score: data.score } })
+          navigate('/success', { state: { username: data.username, score: data.score } });
         } else if (data.error === 'Match Not Found') {
-          navigate('/not-match'); // Navigate to the NotMatch component
+          navigate('/not-match', { state: { score: data.score } }); // Navigate to the NotMatch component with score
         } else if (data.error === 'Audio is too short/empty') {
           setToastSeverity("warning");
           setToastMessage("Audio is too short/empty :(");
@@ -98,15 +102,13 @@ const Register = () => {
         }
       } else {
         setToastSeverity("error");
-        setToastMessage("Failsed to verify the user :(");
+        setToastMessage(data.error || "Failed to verify the user :(");
         setOpenToast(true);
-        console.error("Failed to upload audio");
       }
     } catch (error) {
       setToastSeverity("error");
       setToastMessage("Error uploading audio: " + error.message);
       setOpenToast(true);
-      console.error("Error uploading audio:", error);
     }
   };
 
@@ -119,7 +121,12 @@ const Register = () => {
 
   return (
       <Container component="main" maxWidth="xs">
-                  <Snackbar open={openToast} autoHideDuration={6000} onClose={handleCloseToast}>
+        <Snackbar
+        open={openToast} 
+        autoHideDuration={6000} 
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
           <MuiAlert elevation={6} variant="filled" onClose={handleCloseToast} severity={toastSeverity}>
             {toastMessage}
           </MuiAlert>
@@ -192,4 +199,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Home;

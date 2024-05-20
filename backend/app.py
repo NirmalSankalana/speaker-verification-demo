@@ -44,7 +44,7 @@ def register():
 
     if embedding is None:
         print("error: audio is too short/empty")
-        return jsonify({'error': 'Audio is too short/empty'})
+        return jsonify({'error': 'Audio is too short/empty'}), 400
     
     serialized_emb = serialize_array(embedding)
 
@@ -66,6 +66,13 @@ def verify():
     audio_file = request.files['audio']
     username = request.form['username'].split()[0]
 
+    session = Session()
+    stored_embedding = session.query(Embedding).filter_by(username=username).first()
+    session.close()
+
+    if stored_embedding is None:
+        return jsonify({'error': 'Username not found'}), 400
+
     # if is_username_reserved(username):
     #     return jsonify({'error': 'Username is reserved'}), 400
 
@@ -80,21 +87,15 @@ def verify():
     
     if embedding is None:
         print("error: audio is too short/empty")
-        return jsonify({'error': 'Audio is too short/empty'})
+        return jsonify({'error': 'Audio is too short/empty'}), 400
     # print(f"Embedding shape: {embedding.shape} {embedding}")
 
-    session = Session()
-    stored_embedding = session.query(Embedding).filter_by(username=username).first()
-    session.close()
-
-    if stored_embedding is None:
-        return jsonify({'error': 'Username not found'})
     
     embedding_array = deserialize_array(stored_embedding.embedding)
     similarity = Similarity.cosine_similarity(embedding_array, embedding)
     print(f"Similarity: {similarity}")
 
-    if similarity >= 0.4:
+    if similarity >= THRESHOLD:
         return jsonify({'message': 'Match Found', 'username': username, 'score': str(similarity)})
     else:
         return jsonify({'error': 'Match Not Found', 'username': username, 'score': str(similarity)})

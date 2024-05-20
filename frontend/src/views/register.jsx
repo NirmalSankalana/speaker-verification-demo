@@ -8,10 +8,12 @@ import {
   TextField,
   Grid,
   Snackbar,
+  Collapse,
 } from "@mui/material";
 import MuiAlert from '@mui/material/Alert';
 import FiberManualRecordTwoToneIcon from "@mui/icons-material/FiberManualRecordTwoTone";
 import StopCircleTwoToneIcon from "@mui/icons-material/StopCircleTwoTone";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Link } from "react-router-dom";
 
 const Register = () => {
@@ -22,6 +24,7 @@ const Register = () => {
   const [openToast, setOpenToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastSeverity, setToastSeverity] = useState("success");
+  const [openInstructions, setOpenInstructions] = useState(false);
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -86,7 +89,7 @@ const Register = () => {
 
       if (response.ok) {
         setToastSeverity("success");
-        setToastMessage("User Registerd Successfully :)");
+        setToastMessage("User Registered Successfully :)");
       } else {
         setToastSeverity("error");
         setToastMessage(data.error || "Failed to register the user :(");
@@ -106,18 +109,22 @@ const Register = () => {
     setOpenToast(false);
   };
 
+  const toggleInstructions = () => {
+    setOpenInstructions(!openInstructions);
+  };
+
   return (
     <Container component="main" maxWidth="xs">
-              <Snackbar 
-              open={openToast} 
-              autoHideDuration={6000} 
-              onClose={handleCloseToast}
-              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-              >
-          <MuiAlert elevation={6} variant="filled" onClose={handleCloseToast} severity={toastSeverity}>
-            {toastMessage}
-          </MuiAlert>
-        </Snackbar>
+      <Snackbar
+        open={openToast}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <MuiAlert elevation={6} variant="filled" onClose={handleCloseToast} severity={toastSeverity}>
+          {toastMessage}
+        </MuiAlert>
+      </Snackbar>
       <Box
         sx={{
           marginTop: 20,
@@ -141,6 +148,36 @@ const Register = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
+
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}
+          onClick={toggleInstructions}
+          onMouseEnter={() => setOpenInstructions(true)}
+          onMouseLeave={() => setOpenInstructions(false)}
+        >
+          <Typography variant="body1" color="textPrimary">
+            Say anything or 
+          </Typography>
+          <ExpandMoreIcon />
+        </Box>
+
+        <Collapse in={openInstructions}>
+          <Box sx={{ mt: 1, mb: 2 }}>
+            <Typography variant="body2" color="textSecondary">
+              - The quick brown fox jumps over the lazy dog.
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              - How much wood would a woodchuck chuck if a woodchuck could chuck wood?
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              - She sells seashells by the seashore.
+            </Typography>
+          </Box>
+        </Collapse>
 
         <Grid container spacing={1} alignItems="center">
           <Grid item>
@@ -172,7 +209,7 @@ const Register = () => {
           sx={{ mt: 1 }}
           onClick={sendRecordedAudio}
         >
-          Register
+          Enroll
         </Button>
 
         <Typography variant="body1" sx={{ mt: 1 }}>
